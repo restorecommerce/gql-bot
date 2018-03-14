@@ -1,0 +1,18 @@
+{
+  "options": {
+    "base": "./test/",
+    "concurrency": 4
+  },
+  "tasks": [
+    {
+      "operation": "sync",
+      "src": "./test/folder/",
+      "filter": "createRules.json",
+      "depth": 0,
+      "prefix": "graphql",
+      "metaData": {
+        "cacheControl": "private, max-age=0, no-cache, must-revalidate, proxy-revalidate"
+      }
+    }
+  ]
+}

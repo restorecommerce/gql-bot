@@ -1,0 +1,54 @@
+{
+  "name": "gql-bot",
+  "description": "GraphQL Client automated tasks processor",
+  "main": "index",
+  "version": "0.2.1",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/xingular/gql-bot.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "graphQL",
+    "client",
+    "automated",
+    "tasks",
+    "processor"
+  ],
+  "dependencies": {
+    "graphql-request": "^1.4.0",
+    "js-yaml": "^3.10.0",
+    "lodash": "^4.13.1",
+    "memorystream": "^0.3.1",
+    "promise-streams": "^1.0.1",
+    "query-string": "^4.2.2",
+    "readdirp": "^2.1.0",
+    "string": "^3.3.1",
+    "through2": "^2.0.1",
+    "typescript": "^2.7.1",
+    "url": "^0.11.0"
+  },
+  "devDependencies": {
+    "@types/mocha": "^2.2.48",
+    "@types/node": "^9.4.5",
+    "@types/should": "^13.0.0",
+    "coveralls": "2.11.9",
+    "istanbul": "^0.4.3",
+    "mocha": "^2.5.3",
+    "nock": "^8.0.0",
+    "should": "^13.2.1"
+  },
+  "scripts": {
+    "tsctests": "tsc test/*.ts --module commonjs -target ES6",
+    "pretest": "npm run tsctests && npm run lint",
+    "test": "npm run mocha",
+    "lint": "tslint *.ts",
+    "postinstall": "tsc -d && npm run lint",
+    "mocha": "mocha --timeout 5000 ./test/*.js --trace-warnings",
+    "mocha-debug": "mocha -R spec test/*.js --full-trace --inspect-brk",
+    "coveralls": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec ./test/*.js"
+  },
+  "engines": {
+    "node": ">= 9.2.0"
+  }
+}
