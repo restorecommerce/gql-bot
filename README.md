@@ -1,4 +1,4 @@
-# GraphQL Client
+# gql-bot
 
 <img src="http://img.shields.io/npm/v/%40restorecommerce%2Fgql%2Dbot.svg?style=flat-square" alt="">[![Build Status][build]](https://travis-ci.org/restorecommerce/gql-bot?branch=master)[![Dependencies][depend]](https://david-dm.org/restorecommerce/gql-bot)[![Coverage Status][cover]](https://coveralls.io/github/restorecommerce/gql-bot?branch=master)
 
@@ -7,137 +7,65 @@
 [depend]: https://img.shields.io/david/restorecommerce/gql-bot.svg?style=flat-square
 [cover]: http://img.shields.io/coveralls/restorecommerce/gql-bot/master.svg?style=flat-square
 
-The GraphQL client is a client for importing / deleting resources which
-internally uses [graphql-request](https://github.com/graphcool/graphql-request)
-as GraphQL Client.
-
-Additionally, a job processor is provided which understands a JSON/YAML based
-job DSL to describe multiple jobs and run them in a coordinated manner.
+This is a client for automation of [GraphQL](http://graphql.org/)-related operations regarding resources, such as importing / deleting them.
 
 ## Usage
 
-Create a GraphQL client:
+The module mainly consists of two usable components.
+
+### GraphQL Client
+
+A wrapper around [graphql-request](https://github.com/graphcool/graphql-request). It is used to connect to a GraphQL endpoint with custom headers and to parse resource files. Such resources are described in a JSON/YAML-based DSL and they are parsed to build mutations. 
+It is possible to solely use the GraphQL Client if job automation is not required:
 
 ```js
 import { Client } from 'gql-bot';
 let gqlClient = new Client({
   entry: 'http://example.com/graphql',
-  apiKey: 'apiKey'
+  apiKey: 'apiKey',
+  headers: { /* Custom HTTP headers */}
 });
+
+const mutation = fs.readFileSync('test/folder/createUsers.json');
+const response = await gqlClient.post(mutation);
 ```
 
-Post a GraphQL Request:
+### Job Processor
 
-```js
-// createUsersMutation contains the mutation and list of resoruces
-const creatUsersMutation = 'test/folder/createUsers.json';
-const response = await gqlClient.post(creatUsersMutation);
-```
+The job processor implements a pipeline mechanism to process JSON-based job files, which can contain one or more tasks, which can be run concurrently or sequentially. The job can have different options such as the maximum number of concurrent tasks and each task contains useful information for the GraphQL Client, such as the file path filter (e.g: 'create*.json'), the desired operation or useful metadata. Currently, the only implemented operation is 'sync'.
+There is a GraphQL-based processor, which performs calls to the GraphQL client and a generic processor, to which the GraphQL-specific processor is provided. 
 
-Refer to [tests](/test/) for more details.
-
-### JSON Fiel format
-
-The JSON files (/test/folder) contain list of resources and the mutation or GraphQL query.
-
-## Job Processor Usage
-
-A job consists of options and a set of tasks and a job processor is used to execute / process the jobs.
-
-### Job Description Example
-
-```js
-const jobInfo =
-{
-  "options": {
-    "base": "./test/",
-    "concurrency": 2
-  },
-  "tasks": [
-    {
-      "operation": "sync",
-      "src": "./test/folder/",
-      "filter": "createUsers.json",
-      "depth": 0,
-      "prefix": "graphql",
-      "metaData": {
-        "cacheControl": "private, max-age=0, no-cache, must-revalidate, proxy-revalidate"
-      }
-    },
-    {
-      "operation": "sync",
-      "src": "./test/folder/",
-      "filter": "createOrganizations.json",
-      "depth": 0,
-      "prefix": "graphql",
-      "metaData": {
-        "cacheControl": "private, max-age=0, no-cache, must-revalidate, proxy-revalidate"
-      }
-    }
-  ]
-}
-```
-
-### Job Format
-
-A job description has the following structure:
-
-- `options.base`: The local base directory relative to which the taks are performed.
-- `options.concurrency`: The concurrency at which tasks are processed.
-- `options.processor`: An object with a `process(taks)` method returning a promise.
-
-### Task Format
-
-Possible operations:
-
-- `sync` one way synchronization client → server.
-
-### Usage
-
-Create a job processor instance:
+Example:
 
 ```js
 import { GraphQLProcessor, JobProcessor, Job } from 'gql-bot';
+
+const jobInfo = JSON.parse(fs.readFileSync('./test/job1.json', 'utf8'));
+
+// instantiating a job processor
 jobInfo.options.processor = new GraphQLProcessor({
       entry: 'http://example.com/graphql',
       apiKey: 'apiKey'
     });
 const jobProcessor = new JobProcessor(jobInfo);
-```
 
-Start the job:
-
-```js
-let jobResult = new Job();
-jobResult.on('progress', (task) => {
+// starting a job
+const job = new Job(); // an extension of EventEmitter which can receive job-related options
+job.on('progress', (task) => {
   console.log('Progress :', task.name, task.progress);
 });
-jobResult.on('done', () => {
+job.on('done', () => {
   done();
 });
-await jobProcessor.start(jobInfo, jobResult);
+await jobProcessor.start(jobInfo, job);
 ```
+
+Refer to [tests](test/) for more details.
 
 ## Events
 
-`progress`
-
-Task object with progress information:
-
-```js
-{
-  progress: {
-    value: 82,
-    item: 'Identifier of the task'
-  }
-}
-```
-
-`error`
-
-Any error emits the error
-from the underlying source.
-
-`warn`
-
-Same as for error.
+The following events are issued by the `Job` object:
+- `progress` (contains info specific with the task progress percentage and the task's description)
+- `warn`
+- `error`
+- `done`
