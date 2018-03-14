@@ -54,8 +54,7 @@ export class Client {
     this.entryBaseUrl = protocol + parsedEntry.host + parsedEntry.path;
   }
 
-  _normalizeUrl(iri: string, source?: any): string {
-    const localIri = iri || '';
+  _normalizeUrl(source?: any): string {
     let extendURL = '';
 
     if (source) {
@@ -72,13 +71,13 @@ export class Client {
     return url.resolve(this.entryBaseUrl, extendURL);
   }
 
-  async post(iri: string, source: any, metaData?: any,
-    accessControl?: any, formOptions?: any): Promise<any> {
+  async post(source: any, metaData?: any, accessControl?: any,
+    formOptions?: any): Promise<any> {
     let mutation;
     let variables;
     let caseExpression;
     source = JSON.parse(source);
-    const normalUrl = this._normalizeUrl(iri);
+    const normalUrl = this._normalizeUrl();
 
     if (source.resource_list) {
       caseExpression = 'json';
@@ -113,20 +112,21 @@ export class Client {
         console.log('File format not recognizable');
     }
 
-    if (mutation)
+    if (mutation) {
       mutation = mutation.replace(/\"/g, "");
+    }
+
     variables = [resource_list, apiKey];
-    if (checkVariableMutation(mutation)) {
+    if (_checkVariableMutation(mutation)) {
       const queryVarKeys = source.queryVariables.split(',').map(
         function (keyName: String): String {
           return keyName.trim();
         });
-      const inputVarName = mutation.slice(mutation.indexOf('$') + 1,
-        mutation.indexOf(':'));
-      variables = createQueryVariables(inputVarName, queryVarKeys, variables);
+      const inputVarName = mutation.slice(mutation.indexOf('$') + 1, mutation.indexOf(':'));
+      variables = _createQueryVariables(inputVarName, queryVarKeys, variables);
     } else {
       // update the muation with inline variables
-      mutation = replaceInlineVars(mutation, { resource_list, apiKey });
+      mutation = _replaceInlineVars(mutation, { resource_list, apiKey });
     }
 
     const gqlClient = new GraphQLClient(normalUrl, _.pick(this.opts, ['headers', '...others']));
@@ -134,7 +134,7 @@ export class Client {
   }
 }
 
-function checkVariableMutation(mutation: string): Boolean {
+function _checkVariableMutation(mutation: string): Boolean {
   const mutationName = mutation.slice(mutation.indexOf(' '),
     mutation.indexOf('($'));
   if (mutationName.indexOf('$') > 0) {
@@ -144,12 +144,12 @@ function checkVariableMutation(mutation: string): Boolean {
   }
 }
 
-function replaceInlineVars(mutation: string, args: any): string {
+function _replaceInlineVars(mutation: string, args: any): string {
   if (mutation)
     return mutation.replace(/\${(\w+)}/g, (_, v) => args[v]);
 }
 
-function createQueryVariables(inputVarName: string,
+function _createQueryVariables(inputVarName: string,
   queryVarKeys: any, varValues: any): Object {
   let result = {};
   // queryVars keys and values lenght should match

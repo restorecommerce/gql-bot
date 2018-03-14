@@ -8,13 +8,13 @@ import { Client } from '../';
 
 // For test we are using createUsers json file, for processing mutliple jobs
 // use the jobproc_grapqhql_proc tests
-const creatUsersMutation = 'test/folder/createUsers.json';
+const createUsersMutation = 'test/folder/createUsers.json';
 let client;
 
 describe('client', function () {
 
   it('adding a User/Array of Users should succeed', async function (done) {
-    const fileData = fs.readFileSync(creatUsersMutation).toString();
+    const fileData = fs.readFileSync(createUsersMutation).toString();
     // Users registered successfully
     const respMessage = 'registered successfully';
 
@@ -31,7 +31,7 @@ describe('client', function () {
     client = new Client({
       entry: 'http://example.com/graphql'
     });
-    const response = await client.post(creatUsersMutation, fileData);
+    const response = await client.post(fileData);
     should.exist(response);
     should.exist(response.createUsers);
     should.exist(response.createUsers.regStatus);
@@ -42,7 +42,7 @@ describe('client', function () {
   });
 
   it('adding an User/List of Users should give proper error code when the data already exists', async function (done) {
-    const fileData = fs.readFileSync(creatUsersMutation).toString();
+    const fileData = fs.readFileSync(createUsersMutation).toString();
     // Users already exists response code
     const respMsg = 'already exist';
     const errorMsg = {
@@ -60,7 +60,7 @@ describe('client', function () {
 
     nock('http://example.com').post('/graphql').reply(200, compResp);
 
-    const response = await client.post(creatUsersMutation, fileData);
+    const response = await client.post(fileData);
     should.exist(response);
     should.exist(response.createUsers);
     should.exist(response.createUsers.error);
@@ -80,7 +80,7 @@ describe('client', function () {
 
 
   it('adding a User/List of Users with invalid apiKey should fail', async function (done) {
-    const fileData = fs.readFileSync(creatUsersMutation).toString();
+    const fileData = fs.readFileSync(createUsersMutation).toString();
     // Invalid api key response code
     const respMsg = 'Invalid API Key, user does not have privileges';
     const errorMsg = {
@@ -95,7 +95,7 @@ describe('client', function () {
       entry: 'http://example.com/graphql'
     });
 
-    const response = await client.post(creatUsersMutation, fileData);
+    const response = await client.post(fileData);
 
     should.exist(response);
     should.exist(response.createUsers);

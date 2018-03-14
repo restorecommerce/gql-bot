@@ -69,7 +69,7 @@ export class JobProcessor {
 
     this.taskStream.on('error', (err) => { throw err; });
     this.taskStream.on('end', () => {
-      console.log('Stream ended');
+      // console.log('Stream ended');
     });
 
     const tasksStreamEnded = ps.wait(this.taskStream);

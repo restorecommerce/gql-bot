@@ -30,7 +30,6 @@ export class GraphQLProcessor {
     const memoryStream = new MemoryStream(null, { readable: false });
     switch (job.operation) {
       case 'sync': {  //  synchronous operation
-        const targetIri = (job.prefix || '');
         const fileStream = fs.createReadStream(job.fullPath);
         fileStream.pipe(memoryStream);
 
@@ -40,18 +39,11 @@ export class GraphQLProcessor {
             resolve(buf);
           });
         });
-        return this.client.post(targetIri, payload, job.metaData);
+        return this.client.post(payload, job.metaData);
       }
       default: {
         throw new Error('Unsupported job operation');
       }
     }
   }
-
-  _parseSource(): any { }
 }
-
-const diffBaseToMeta = {
-  md5: 'md5Hash',
-  lastModified: 'lastModified'
-};
