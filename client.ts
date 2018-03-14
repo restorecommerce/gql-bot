@@ -4,7 +4,6 @@ import * as _ from 'lodash';
 import * as url from 'url';
 import * as fs from 'fs';
 import * as qs from 'query-string';
-import * as string from 'string';
 import * as yaml from 'js-yaml';
 import { GraphQLClient, request } from 'graphql-request';
 
@@ -44,7 +43,7 @@ export class Client {
 
   _buildURLs(): any {
     const entry = this.opts.entry;
-    if (!string(entry).startsWith('http')) {
+    if (!String(entry).startsWith('http')) {
       this.opts.entry = this.opts.protocol + '://' + entry;
     }
     const parsedEntry = url.parse(entry);

@@ -42,7 +42,7 @@ export class JobProcessor {
 
     const concurrency = this.jobInfo.options.concurrency;
     const that = this;
-    this.taskStream = ps.map({ concurrent: concurrency }, (task) => {
+    this.taskStream = ps.map({ concurrent: concurrency }, (task: any) => {
       return that.jobInfo.options.processor.process(task).then((body) => {
         console.log('Processed task [' + that.processed + '] and status is :' + JSON.stringify(body));
         that.processed++;
