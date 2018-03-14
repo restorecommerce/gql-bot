@@ -1,0 +1,13 @@
+node_modules/
+npm-debug.log
+
+coverage/
+
+.project
+.settings
+
+*.log
+*~
+*.js
+*.d.ts
+test/*.js
