@@ -7,7 +7,7 @@
 [depend]: https://img.shields.io/david/restorecommerce/gql-bot.svg?style=flat-square
 [cover]: http://img.shields.io/coveralls/restorecommerce/gql-bot/master.svg?style=flat-square
 
-This is a client for automation of [GraphQL](http://graphql.org/)-related operations regarding resources, such as importing / deleting them.
+This is a client for automation of resource-handling operations through [GraphQL](http://graphql.org/), such as importing / deleting them.
 
 ## Usage
 
@@ -15,7 +15,7 @@ The module mainly consists of two usable components.
 
 ### GraphQL Client
 
-A wrapper around [graphql-request](https://github.com/graphcool/graphql-request). It is used to connect to a GraphQL endpoint with custom headers and to parse resource files. Such resources are described in a JSON/YAML-based DSL and they are parsed to build mutations. 
+A wrapper around [graphql-request](https://github.com/graphcool/graphql-request). It is used to connect to a GraphQL endpoint with custom headers and to parse resource files. Such resources are described in a JSON/YAML-based DSL and they are parsed to build mutations/queries. 
 It is possible to solely use the GraphQL Client if job automation is not required:
 
 ```js
