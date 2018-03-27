@@ -1,11 +1,11 @@
 {
-  "name": "gql-bot",
+  "name": "@restorecommerce/gql-bot",
   "description": "GraphQL Client automated tasks processor",
   "main": "index",
   "version": "0.2.1",
   "repository": {
     "type": "git",
-    "url": "http://github.com/xingular/gql-bot.git"
+    "url": "http://github.com/restorecommerce/gql-bot.git"
   },
   "license": "MIT",
   "keywords": [
