@@ -7,7 +7,7 @@
     {
       "operation": "sync",
       "src": "./test/folder/",
-      "filter": "createRules.json",
+      "filter": "createUsersYaml.json",
       "depth": 0,
       "prefix": "graphql",
       "metaData": {

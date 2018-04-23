@@ -13,7 +13,7 @@ let client;
 
 describe('client', function () {
 
-  it('adding a User/Array of Users should succeed', async function (done) {
+  it('should succeed', async function (done) {
     const fileData = fs.readFileSync(createUsersMutation).toString();
     // Users registered successfully
     const respMessage = 'registered successfully';
@@ -41,7 +41,7 @@ describe('client', function () {
     done();
   });
 
-  it('adding an User/List of Users should give proper error code when the data already exists', async function (done) {
+  it('should return a proper error code', async function (done) {
     const fileData = fs.readFileSync(createUsersMutation).toString();
     // Users already exists response code
     const respMsg = 'already exist';
@@ -77,42 +77,4 @@ describe('client', function () {
     });
     done();
   });
-
-
-  it('adding a User/List of Users with invalid apiKey should fail', async function (done) {
-    const fileData = fs.readFileSync(createUsersMutation).toString();
-    // Invalid api key response code
-    const respMsg = 'Invalid API Key, user does not have privileges';
-    const errorMsg = {
-      code: ['015'], message:
-      ['Invalid API Key, user does not have privileges']
-    };
-
-    const compResp = { data: { createUsers: { regStatus: [], error: [errorMsg] } } };
-    nock('http://example.com').post('/graphql').reply(200, compResp);
-
-    client = new Client({
-      entry: 'http://example.com/graphql'
-    });
-
-    const response = await client.post(fileData);
-
-    should.exist(response);
-    should.exist(response.createUsers);
-    should.exist(response.createUsers.error);
-
-    response.createUsers.error.forEach(error => {
-      should.exist(error);
-      should.exist(error.code);
-      should.exist(error.message);
-      error.code.forEach(code => {
-        code.should.equal('015');
-      });
-      error.message.forEach(msg => {
-        msg.should.equal(respMsg);
-      });
-    });
-    done();
-  });
-
 });

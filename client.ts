@@ -116,14 +116,10 @@ export class Client {
       mutation = mutation.replace(/\"/g, "");
     }
 
-    variables = [resource_list, apiKey];
     if (_checkVariableMutation(mutation)) {
-      const queryVarKeys = source.queryVariables.split(',').map(
-        function (keyName: String): String {
-          return keyName.trim();
-        });
+      const queryVarKey = source.queryVariables;
       const inputVarName = mutation.slice(mutation.indexOf('$') + 1, mutation.indexOf(':'));
-      variables = _createQueryVariables(inputVarName, queryVarKeys, variables);
+      variables = _createQueryVariables(inputVarName, queryVarKey, resource_list);
     } else {
       // update the muation with inline variables
       mutation = _replaceInlineVars(mutation, { resource_list, apiKey });
@@ -150,11 +146,10 @@ function _replaceInlineVars(mutation: string, args: any): string {
 }
 
 function _createQueryVariables(inputVarName: string,
-  queryVarKeys: any, varValues: any): Object {
-  let result = {};
-  // queryVars keys and values lenght should match
-  if (queryVarKeys.length === varValues.length) {
-    queryVarKeys.forEach((key, i) => result[key] = JSON.parse(varValues[i]));
-  }
-  return { [inputVarName]: result };
+  queryVarKey: string, varValue: any): Object {
+  return {
+    [inputVarName]: {
+      [queryVarKey]: JSON.parse(varValue)
+    }
+  };
 }
