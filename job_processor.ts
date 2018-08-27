@@ -59,9 +59,9 @@ export class JobProcessor {
       objectMode: true
     }, tasks);
 
-    inputTaskStream.pipe(through2.obj((task, enc, cb) => {
+    inputTaskStream.pipe(through2.obj(async (task, enc, cb) => {
       const operation = task.operation;
-      that[operation].apply(that, [task, job]);
+      await that[operation].apply(that, [task, job]);
       cb();
     }));
 
@@ -82,7 +82,7 @@ export class JobProcessor {
     return job;
   }
 
-  sync(task: any, job: Job): void {
+  async sync(task: any, job: Job): Promise<any> {
     const pathOptions = {
       root: '',
       fileFilter: '*',
@@ -107,7 +107,9 @@ export class JobProcessor {
 
     const fileItemStream = readdirp(pathOptions);
     const that = this;
-    fileItemStream
+
+    await new Promise((resolve, reject) => {
+      fileItemStream
       .on('warn', (warn) => {
         job.emit('warn', warn);
       })
@@ -125,6 +127,7 @@ export class JobProcessor {
         task.processing++;
         fileItem.inputTask = task;
         job.emit('progress', fileItem);
+        resolve(job);
       })
       .on('end', () => {
         if (!that.processedTasks) {
@@ -139,6 +142,7 @@ export class JobProcessor {
         }
       })
       .pipe(that.taskStream, { end: false });
+    });
   }
 }
 
