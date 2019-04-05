@@ -7,7 +7,7 @@ import { GraphQLProcessor, JobProcessor, Job } from '../';
 
 let jobProcessor;
 
-describe('jobproc-grapqhl-proc:', function () {
+describe('jobproc-grapqhl-proc:', function (): void  {
   it('a job processor can be instantiated', function () {
 
     const job1 = JSON.parse(fs.readFileSync('./test/job1.json', 'utf8'));
@@ -20,7 +20,7 @@ describe('jobproc-grapqhl-proc:', function () {
   });
 
   it('a job should start and process import Users jobs and should run to completion',
-    async function (done) {
+    async function (): Promise<void> {
       const respMessage = {
         data: {
           createUsers: {
@@ -35,14 +35,11 @@ describe('jobproc-grapqhl-proc:', function () {
         console.log('Progress :', task.name, task.progress);
       });
 
-      jobResult.on('done', () => {
-        done();
-      });
       jobResult = await jobProcessor.start(null, jobResult);
     });
 
   it('a job should start and process multiple tasks and should run to completion',
-    async function (done) {
+    async function (): Promise<void> {
       const createUsersRespMessage = {
         data: {
           createUsers: {
@@ -81,17 +78,11 @@ describe('jobproc-grapqhl-proc:', function () {
         }
       });
 
-      jobResult.on('done', () => {
-        if (filesFound === filesToBeFound) {
-          done();
-        }
-      });
-
       await jobProcessor.start(null, jobResult);
     });
 
   it('a job should start and process yml tasks and should run to completion',
-    async function (done) {
+    async function (): Promise<void> {
       const filesToBeFound = 1;
       let filesFound = 0;
 
@@ -120,11 +111,6 @@ describe('jobproc-grapqhl-proc:', function () {
         }
       });
 
-      jobResult.on('done', () => {
-        if (filesFound === filesToBeFound) {
-          done();
-        }
-      });
       await jobProcessor.start(null, jobResult);
     });
 });

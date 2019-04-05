@@ -13,7 +13,7 @@ let client;
 
 describe('client', function () {
 
-  it('should succeed', async function (done) {
+  it('should succeed', async function (): Promise<any> {
     const fileData = fs.readFileSync(createUsersMutation).toString();
     // Users registered successfully
     const respMessage = 'registered successfully';
@@ -32,16 +32,16 @@ describe('client', function () {
       entry: 'http://example.com/graphql'
     });
     const response = await client.post(fileData);
+    console.log('Response is..', response);
     should.exist(response);
     should.exist(response.createUsers);
     should.exist(response.createUsers.regStatus);
-    response.createUsers.regStatus.forEach(function (status) {
+    response.createUsers.regStatus.forEach(function (status: any): any {
       status.toString().should.equal(respMessage);
     }, this);
-    done();
   });
 
-  it('should return a proper error code', async function (done) {
+  it('should return a proper error code', async function () {
     const fileData = fs.readFileSync(createUsersMutation).toString();
     // Users already exists response code
     const respMsg = 'already exist';
@@ -75,6 +75,5 @@ describe('client', function () {
         msg.should.containEql(respMsg);
       });
     });
-    done();
   });
 });
