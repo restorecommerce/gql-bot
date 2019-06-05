@@ -5,13 +5,12 @@ import * as should from 'should';
 
 import { Client } from '../';
 
-
 // For test we are using createUsers json file, for processing mutliple jobs
 // use the jobproc_grapqhql_proc tests
 const createUsersMutation = 'test/folder/createUsers.json';
 let client;
 
-describe('client', function () {
+describe('client', () => {
 
   it('should succeed', async function (): Promise<any> {
     const fileData = fs.readFileSync(createUsersMutation).toString();

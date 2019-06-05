@@ -5,6 +5,7 @@
   },
   "tasks": [
     {
+      "name": "job4",
       "operation": "sync",
       "src": "./test/folder/",
       "filter": "createUsersYaml.json",

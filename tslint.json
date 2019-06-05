@@ -20,7 +20,6 @@
       "check-open-brace",
       "check-whitespace"
     ],
-    "no-use-before-declare": true,
     "no-var-keyword": true,
     "semicolon": [true, "always"],
     "whitespace": [

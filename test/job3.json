@@ -5,6 +5,7 @@
   },
   "tasks": [
     {
+      "name": "job3-1",
       "operation": "sync",
       "src": "./test/folder/",
       "filter": "createUsers.json",
@@ -15,6 +16,7 @@
       }
     },
     {
+      "name": "job3-2",
       "operation": "sync",
       "src": "./test/folder/",
       "filter": "createOrganizations.json",

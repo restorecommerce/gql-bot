@@ -41,11 +41,11 @@ export class JobProcessor {
     tasks = tasks || this.jobInfo.tasks;
 
     const concurrency = this.jobInfo.options.concurrency;
-    const that = this;
+    const thiz = this;
     this.taskStream = ps.map({ concurrent: concurrency }, (task: any) => {
-      return that.jobInfo.options.processor.process(task).then((body) => {
-        console.log('Processed task [' + that.processed + '] and status is :' + JSON.stringify(body));
-        that.processed++;
+      return thiz.jobInfo.options.processor.process(task).then((body) => {
+        console.log('Processed task [' + thiz.processed + '] and status is:' + JSON.stringify(body));
+        thiz.processed++;
         task.inputTask.processing--;
         task.progress.value = 100; // task complete
         job.emit('progress', task);
@@ -61,7 +61,7 @@ export class JobProcessor {
 
     inputTaskStream.pipe(through2.obj(async (task, enc, cb) => {
       const operation = task.operation;
-      await that[operation].apply(that, [task, job]);
+      await thiz[operation].apply(thiz, [task, job]);
       cb();
     }));
 
@@ -84,9 +84,8 @@ export class JobProcessor {
 
   async sync(task: any, job: Job): Promise<any> {
     const pathOptions = {
-      root: '',
-      fileFilter: '*',
-      depth: null,
+      fileFilter: (entry) => { return true; },
+      depth: 1,
       lstat: true
     };
     const pathSegments = [process.cwd()];
@@ -96,7 +95,7 @@ export class JobProcessor {
     if (!_.isUndefined(task.src)) {
       pathSegments.push(task.src);
     }
-    pathOptions.root = path.join.apply(this, pathSegments);
+
     pathOptions.fileFilter = task.filter || pathOptions.fileFilter;
 
     if (task.depth) {
@@ -105,8 +104,8 @@ export class JobProcessor {
       delete pathOptions.depth;
     }
 
-    const fileItemStream = readdirp(pathOptions);
-    const that = this;
+    const fileItemStream = readdirp(path.join.apply(this, pathSegments), pathOptions);
+    const thiz = this;
 
     await new Promise((resolve, reject) => {
       fileItemStream
@@ -130,18 +129,18 @@ export class JobProcessor {
         resolve(job);
       })
       .on('end', () => {
-        if (!that.processedTasks) {
-          that.processedTasks = 0;
+        if (!thiz.processedTasks) {
+          thiz.processedTasks = 0;
         }
-        that.processedTasks++;
+        thiz.processedTasks++;
         // Check processedTasks tasks
         // Manually emit `end` event for all tasks finished
-        if (that.processedTasks === that.jobInfo.tasks.length) {
-          that.taskStream._flush(() => { });
-          that.taskStream.emit('end');
+        if (thiz.processedTasks === thiz.jobInfo.tasks.length) {
+          thiz.taskStream._flush(() => { });
+          thiz.taskStream.emit('end');
         }
       })
-      .pipe(that.taskStream, { end: false });
+      .pipe(thiz.taskStream, { end: false });
     });
   }
 }

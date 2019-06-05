@@ -7,8 +7,8 @@ import { GraphQLProcessor, JobProcessor, Job } from '../';
 
 let jobProcessor;
 
-describe('jobproc-grapqhl-proc:', function (): void  {
-  it('a job processor can be instantiated', function () {
+describe('jobproc-grapqhl-proc:', (): void => {
+  it('a job processor can be instantiated', () => {
 
     const job1 = JSON.parse(fs.readFileSync('./test/job1.json', 'utf8'));
     job1.options.processor = new GraphQLProcessor({
@@ -32,7 +32,7 @@ describe('jobproc-grapqhl-proc:', function (): void  {
       let jobResult = new Job();
 
       jobResult.on('progress', (task) => {
-        console.log('Progress :', task.name, task.progress);
+        console.log('Progress:', task.name, task.progress);
       });
 
       jobResult = await jobProcessor.start(null, jobResult);
@@ -72,7 +72,7 @@ describe('jobproc-grapqhl-proc:', function (): void  {
       let jobResult = new Job();
 
       jobResult.on('progress', (task) => {
-        console.log('Progress :', task.name, task.progress);
+        console.log('Progress:', task.name, task.progress);
         if (task.progress.value === 0) {
           filesFound++;
         }
@@ -105,7 +105,7 @@ describe('jobproc-grapqhl-proc:', function (): void  {
       let jobResult = new Job();
 
       jobResult.on('progress', (task) => {
-        console.log('Progress :', task.name, task.progress);
+        console.log('Progress:', task.name, task.progress);
         if (task.progress.value === 0) {
           filesFound++;
         }
