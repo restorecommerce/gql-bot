@@ -3,7 +3,7 @@ import * as nock from 'nock';
 import * as mocha from 'mocha';
 import * as should from 'should';
 
-import { Client } from '../';
+import { Client } from '../lib';
 
 // For test we are using createUsers json file, for processing mutliple jobs
 // use the jobproc_grapqhql_proc tests

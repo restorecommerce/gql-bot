@@ -3,7 +3,7 @@ import * as nock from 'nock';
 import * as mocha from 'mocha';
 import * as should from 'should';
 
-import { GraphQLProcessor, JobProcessor, Job } from '../';
+import { GraphQLProcessor, JobProcessor, Job } from '../lib';
 
 let jobProcessor;
 
