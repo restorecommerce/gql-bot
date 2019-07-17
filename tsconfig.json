@@ -20,5 +20,8 @@
     "node_modules",
     "lib",
     "doc"
+  ],
+  "lib": [
+    "esnext",
   ]
 }
