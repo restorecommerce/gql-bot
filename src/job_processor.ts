@@ -1,5 +1,3 @@
-'use strict';
-
 import * as _ from 'lodash';
 import * as ps from 'promise-streams';
 import { Readable } from 'stream';
@@ -7,6 +5,23 @@ import * as through2 from 'through2';
 import * as readdirp from 'readdirp';
 import * as path from 'path';
 import { EventEmitter } from 'events';
+
+export class ReadArrayStream extends Readable {
+  array: any[];
+  constructor(opts: any, array: any[]) {
+    super(opts);
+    this.array = _.clone(array);
+  }
+
+  _read(): void {
+    if (this.array && this.array.length > 0) {
+      const data = this.array.shift();
+      this.push(data);
+    } else {
+      this.push(null);
+    }
+  }
+}
 
 /*
  * A class to represent a job and its end result as promise.
@@ -109,55 +124,38 @@ export class JobProcessor {
 
     await new Promise((resolve, reject) => {
       fileItemStream
-      .on('warn', (warn) => {
-        job.emit('warn', warn);
-      })
-      .on('error', (err) => {
-        job.emit('error', err);
-      })
-      .on('data', (fileItem) => {
-        fileItem.progress = {
-          value: 0
-        };
-        _.merge(fileItem, task);
-        if (!task.processing) {
-          task.processing = 0;
-        }
-        task.processing++;
-        fileItem.inputTask = task;
-        job.emit('progress', fileItem);
-        resolve(job);
-      })
-      .on('end', () => {
-        if (!thiz.processedTasks) {
-          thiz.processedTasks = 0;
-        }
-        thiz.processedTasks++;
-        // Check processedTasks tasks
-        // Manually emit `end` event for all tasks finished
-        if (thiz.processedTasks === thiz.jobInfo.tasks.length) {
-          thiz.taskStream._flush(() => { });
-          thiz.taskStream.emit('end');
-        }
-      })
-      .pipe(thiz.taskStream, { end: false });
+        .on('warn', (warn) => {
+          job.emit('warn', warn);
+        })
+        .on('error', (err) => {
+          job.emit('error', err);
+        })
+        .on('data', (fileItem) => {
+          fileItem.progress = {
+            value: 0
+          };
+          _.merge(fileItem, task);
+          if (!task.processing) {
+            task.processing = 0;
+          }
+          task.processing++;
+          fileItem.inputTask = task;
+          job.emit('progress', fileItem);
+          resolve(job);
+        })
+        .on('end', () => {
+          if (!thiz.processedTasks) {
+            thiz.processedTasks = 0;
+          }
+          thiz.processedTasks++;
+          // Check processedTasks tasks
+          // Manually emit `end` event for all tasks finished
+          if (thiz.processedTasks === thiz.jobInfo.tasks.length) {
+            thiz.taskStream._flush(() => { });
+            thiz.taskStream.emit('end');
+          }
+        })
+        .pipe(thiz.taskStream, { end: false });
     });
-  }
-}
-
-export class ReadArrayStream extends Readable {
-  array: any[];
-  constructor(opts: any, array: any[]) {
-    super(opts);
-    this.array = _.clone(array);
-  }
-
-  _read(): void {
-    if (this.array && this.array.length > 0) {
-      const data = this.array.shift();
-      this.push(data);
-    } else {
-      this.push(null);
-    }
   }
 }

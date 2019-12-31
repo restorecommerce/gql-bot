@@ -1,11 +1,33 @@
-'use strict';
-
 import * as _ from 'lodash';
 import * as url from 'url';
 import * as fs from 'fs';
 import * as qs from 'query-string';
 import * as yaml from 'js-yaml';
 import { GraphQLClient, request } from 'graphql-request';
+
+function _checkVariableMutation(mutation: string): Boolean {
+  const mutationName = mutation.slice(mutation.indexOf(' '),
+    mutation.indexOf('($'));
+  if (mutationName.indexOf('$') > 0) {
+    return false;
+  } else {
+    return new RegExp('\\b' + mutationName + '\\(', 'i').test(mutation);
+  }
+}
+
+function _replaceInlineVars(mutation: string, args: any): string {
+  if (mutation)
+    return mutation.replace(/\${(\w+)}/g, (_, v) => args[v]);
+}
+
+function _createQueryVariables(inputVarName: string,
+  queryVarKey: string, varValue: any): Object {
+  return {
+    [inputVarName]: {
+      [queryVarKey]: JSON.parse(varValue)
+    }
+  };
+}
 
 export class Client {
   opts: any;
@@ -95,7 +117,7 @@ export class Client {
       case 'json':
         resource_list = JSON.stringify(source.resource_list);
         // To remove double quotes from the keys in JSON data
-        resource_list = resource_list.replace(/\"([^(\")"]+)\":/g, "$1:");
+        resource_list = resource_list.replace(/\"([^(\")"]+)\":/g, '$1:');
         break;
 
       case 'yaml':
@@ -113,7 +135,7 @@ export class Client {
     }
 
     if (mutation) {
-      mutation = mutation.replace(/\"/g, "");
+      mutation = mutation.replace(/\"/g, '');
     }
 
     if (_checkVariableMutation(mutation)) {
@@ -128,28 +150,4 @@ export class Client {
     const gqlClient = new GraphQLClient(normalUrl, _.pick(this.opts, ['headers', '...others']));
     return gqlClient.request(mutation, variables);
   }
-}
-
-function _checkVariableMutation(mutation: string): Boolean {
-  const mutationName = mutation.slice(mutation.indexOf(' '),
-    mutation.indexOf('($'));
-  if (mutationName.indexOf('$') > 0) {
-    return false;
-  } else {
-    return new RegExp('\\b' + mutationName + '\\(', 'i').test(mutation);
-  }
-}
-
-function _replaceInlineVars(mutation: string, args: any): string {
-  if (mutation)
-    return mutation.replace(/\${(\w+)}/g, (_, v) => args[v]);
-}
-
-function _createQueryVariables(inputVarName: string,
-  queryVarKey: string, varValue: any): Object {
-  return {
-    [inputVarName]: {
-      [queryVarKey]: JSON.parse(varValue)
-    }
-  };
 }

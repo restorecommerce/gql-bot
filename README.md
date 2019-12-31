@@ -7,7 +7,7 @@
 [depend]: https://img.shields.io/david/restorecommerce/gql-bot.svg?style=flat-square
 [cover]: http://img.shields.io/coveralls/restorecommerce/gql-bot/master.svg?style=flat-square
 
-This is a client for using [GraphQL](http://graphql.org/) APIs in an automated manner.
+This is an automated [GraphQL](http://graphql.org/) API client.
 
 Example use cases:
 
@@ -78,6 +78,7 @@ Refer to [tests](test/) for more details.
 ## Events
 
 The following events are issued by the `Job` object:
+
 - `progress` (contains info specific with the task progress percentage and the task's description)
 - `warn`
 - `error`

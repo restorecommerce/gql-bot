@@ -1,13 +1,18 @@
 node_modules/
 npm-debug.log
 
-.nyc_output
+coverage/
+pid/
 
 .project
 .settings
+.directory
+
+!setupTopics.js
+
+lib
 
 *.log
 *~
-*.js
-*.d.ts
-test/*.js
+/mc
+.nyc_output
