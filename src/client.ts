@@ -98,8 +98,8 @@ export class Client {
 
   async post(source: any, metaData?: any, accessControl?: any,
     formOptions?: any): Promise<any> {
-    let mutation;
-    let variables;
+    let mut;
+    let vars;
     let caseExpression;
     source = JSON.parse(source);
     const normalUrl = this._normalizeUrl();
@@ -111,7 +111,7 @@ export class Client {
     }
 
     if (source.mutation) {
-      mutation = JSON.stringify(source.mutation);
+      mut = JSON.stringify(source.mutation);
     }
 
     const apiKey = JSON.stringify(this.opts.apiKey);
@@ -137,17 +137,17 @@ export class Client {
         console.log('File format not recognizable');
     }
 
-    if (mutation) {
-      mutation = mutation.replace(/\"/g, '');
+    if (mut) {
+      mut = mut.replace(/\"/g, '');
     }
 
-    if (_checkVariableMutation(mutation)) {
+    if (_checkVariableMutation(mut)) {
       const queryVarKey = source.queryVariables;
-      const inputVarName = mutation.slice(mutation.indexOf('$') + 1, mutation.indexOf(':'));
-      variables = _createQueryVariables(inputVarName, queryVarKey, resource_list);
+      const inputVarName = mut.slice(mut.indexOf('$') + 1, mut.indexOf(':'));
+      vars = _createQueryVariables(inputVarName, queryVarKey, resource_list);
     } else {
       // update the muation with inline variables
-      mutation = _replaceInlineVars(mutation, { resource_list, apiKey });
+      mut = _replaceInlineVars(mut, { resource_list, apiKey });
     }
 
     const apolloCache = new InMemoryCache();
@@ -162,10 +162,10 @@ export class Client {
       cache: apolloCache,
       link: apolloLink
     });
-    
+
     return apolloClient.mutate({
-      mutation: mutation,
-      variables: variables
+      mutation: mut,
+      variables: vars
     });
   }
 }
