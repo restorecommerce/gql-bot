@@ -1,11 +1,12 @@
 import * as _ from 'lodash';
 import * as url from 'url';
 import * as fs from 'fs';
-import * as qs from 'query-string';
 import * as yaml from 'js-yaml';
+import gql from 'graphql-tag';
 import { ApolloClient } from 'apollo-client';
 import { InMemoryCache } from 'apollo-cache-inmemory';
-import { HttpLink } from 'apollo-link-http';
+import fetch from 'node-fetch'; // required for apollo-link-http
+import { createHttpLink } from 'apollo-link-http';
 
 
 function _checkVariableMutation(mutation: string): Boolean {
@@ -98,8 +99,8 @@ export class Client {
 
   async post(source: any, metaData?: any, accessControl?: any,
     formOptions?: any): Promise<any> {
-    let mut;
-    let vars;
+    let mutation;
+    let variables;
     let caseExpression;
     source = JSON.parse(source);
     const normalUrl = this._normalizeUrl();
@@ -111,7 +112,7 @@ export class Client {
     }
 
     if (source.mutation) {
-      mut = JSON.stringify(source.mutation);
+      mutation = JSON.stringify(source.mutation);
     }
 
     const apiKey = JSON.stringify(this.opts.apiKey);
@@ -137,35 +138,41 @@ export class Client {
         console.log('File format not recognizable');
     }
 
-    if (mut) {
-      mut = mut.replace(/\"/g, '');
+    if (mutation) {
+      mutation = mutation.replace(/\"/g, '');
     }
 
-    if (_checkVariableMutation(mut)) {
+    if (_checkVariableMutation(mutation)) {
       const queryVarKey = source.queryVariables;
-      const inputVarName = mut.slice(mut.indexOf('$') + 1, mut.indexOf(':'));
-      vars = _createQueryVariables(inputVarName, queryVarKey, resource_list);
+      const inputVarName = mutation.slice(mutation.indexOf('$') + 1, mutation.indexOf(':'));
+      variables = _createQueryVariables(inputVarName, queryVarKey, resource_list);
     } else {
       // update the muation with inline variables
-      mut = _replaceInlineVars(mut, { resource_list, apiKey });
+      mutation = _replaceInlineVars(mutation, { resource_list, apiKey });
+    }
+    const apolloLinkOpts = {
+      uri: normalUrl,
+      fetch
+    };
+
+    if (this.opts.headers) {
+      apolloLinkOpts['headers'] = this.opts.headers;
     }
 
-    const apolloCache = new InMemoryCache();
-    const apolloLink = new HttpLink({
-      uri: normalUrl,
-      headers: this.opts.headers
-    });
-    // now what exactly is "...others"?
+    const apolloLink = createHttpLink(apolloLinkOpts);
+
+    // now what exactly is/was "...others"?
     // const gqlClient = new GraphQLClient(normalUrl, _.pick(this.opts, ['headers', '...others']));
 
+    const apolloCache = new InMemoryCache();
     const apolloClient = new ApolloClient({
       cache: apolloCache,
       link: apolloLink
     });
 
     return apolloClient.mutate({
-      mutation: mut,
-      variables: vars
+      mutation: gql`${mutation}`, // string must be pre-parsed
+      variables
     });
   }
 }
