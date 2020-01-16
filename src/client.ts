@@ -3,7 +3,10 @@ import * as url from 'url';
 import * as fs from 'fs';
 import * as qs from 'query-string';
 import * as yaml from 'js-yaml';
-import { GraphQLClient, request } from 'graphql-request';
+import { ApolloClient } from 'apollo-client';
+import { InMemoryCache } from 'apollo-cache-inmemory';
+import { HttpLink } from 'apollo-link-http';
+
 
 function _checkVariableMutation(mutation: string): Boolean {
   const mutationName = mutation.slice(mutation.indexOf(' '),
@@ -147,7 +150,22 @@ export class Client {
       mutation = _replaceInlineVars(mutation, { resource_list, apiKey });
     }
 
-    const gqlClient = new GraphQLClient(normalUrl, _.pick(this.opts, ['headers', '...others']));
-    return gqlClient.request(mutation, variables);
+    const apolloCache = new InMemoryCache();
+    const apolloLink = new HttpLink({
+      uri: normalUrl,
+      headers: this.opts.headers
+    });
+    // now what exactly is "...others"?
+    // const gqlClient = new GraphQLClient(normalUrl, _.pick(this.opts, ['headers', '...others']));
+
+    const apolloClient = new ApolloClient({
+      cache: apolloCache,
+      link: apolloLink
+    });
+    
+    return apolloClient.mutate({
+      mutation: mutation,
+      variables: variables
+    });
   }
 }
