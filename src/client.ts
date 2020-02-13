@@ -153,7 +153,8 @@ export class Client {
       // don't replace quoted strings inside outer quotes
       // (i.e. if the quote is preceded by a backslash)
       // make sure to also match line/expression start
-      mutation = mutation.replace(/(^|[^\\])\"/g, '');
+      // and keep the symbol preceding the quote
+      mutation = mutation.replace(/(^|[^\\])\"/g, '$1');
     }
 
     if (!fileUploads) {
