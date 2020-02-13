@@ -7,6 +7,7 @@ import { ApolloClient } from 'apollo-client';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import fetch from 'node-fetch'; // required for apollo-link-http
 import { createHttpLink } from 'apollo-link-http';
+import { createUploadLink } from 'apollo-upload-client';
 
 
 function _checkVariableMutation(mutation: string): Boolean {
@@ -109,6 +110,8 @@ export class Client {
       caseExpression = 'json';
     } else if (source.yaml_file_paths) {
       caseExpression = 'yaml';
+    } else if (source.file_blob_paths) {
+      caseExpression = 'blob'
     }
 
     if (source.mutation) {
@@ -117,6 +120,7 @@ export class Client {
 
     const apiKey = JSON.stringify(this.opts.apiKey);
     let resource_list: any = [];
+    let fileUploads;
     switch (caseExpression) {
       case 'json':
         resource_list = JSON.stringify(source.resource_list);
@@ -134,32 +138,50 @@ export class Client {
         });
         break;
 
+      case 'blob':
+        fileUploads = [];
+        _.forEach(source.file_blob_paths, (fileBlobPath) => {
+          fileUploads.push(new Blob([fs.readFileSync(fileBlobPath).buffer]));
+        });
+        break;
+
       default:
         console.log('File format not recognizable');
     }
-
+    
     if (mutation) {
-      mutation = mutation.replace(/\"/g, '');
+      // don't replace quoted strings inside outer quotes
+      // (i.e. if the quote is preceded by a backslash)
+      // make sure to also match line/expression start
+      mutation = mutation.replace(/(^|[^\\])\"/g, '');
     }
 
-    if (_checkVariableMutation(mutation)) {
-      const queryVarKey = source.queryVariables;
-      const inputVarName = mutation.slice(mutation.indexOf('$') + 1, mutation.indexOf(':'));
-      variables = _createQueryVariables(inputVarName, queryVarKey, resource_list);
-    } else {
-      // update the muation with inline variables
-      mutation = _replaceInlineVars(mutation, { resource_list, apiKey });
+    if (!fileUploads) {
+      if (_checkVariableMutation(mutation)) {
+        const queryVarKey = source.queryVariables;
+        const inputVarName = mutation.slice(mutation.indexOf('$') + 1, mutation.indexOf(':'));
+        variables = _createQueryVariables(inputVarName, queryVarKey, resource_list);
+      } else {
+        mutation = _replaceInlineVars(mutation, { resource_list, apiKey });
+      }
     }
+
     const apolloLinkOpts = {
       uri: normalUrl,
       fetch
-    };
+    };    
 
     if (this.opts.headers) {
       apolloLinkOpts['headers'] = this.opts.headers;
     }
 
-    const apolloLink = createHttpLink(apolloLinkOpts);
+    let apolloLink;
+    if (fileUploads) {
+      apolloLink = createUploadLink(apolloLinkOpts);
+    } else {
+      apolloLink = createHttpLink(apolloLinkOpts);
+    }
+    
 
     // now what exactly is/was "...others"?
     // const gqlClient = new GraphQLClient(normalUrl, _.pick(this.opts, ['headers', '...others']));
@@ -170,9 +192,26 @@ export class Client {
       link: apolloLink
     });
 
-    return apolloClient.mutate({
-      mutation: gql`${mutation}`, // string must be pre-parsed
-      variables
-    });
+    if (fileUploads) {
+      // The GQL file upload libraries only support FileList (read-only type)
+      // and/or single files/blobs. Hence, uploads need to be run one by one.
+      let uploadMutations = [];
+      for (let blob of fileUploads) {
+        variables = { 'file': blob };
+        uploadMutations.push(
+          apolloClient.mutate({
+            // Mutation string must be pre-parsed into GQL AST via 'gql' template literal
+            mutation: gql`${mutation}`, 
+            variables
+          })
+        );
+      }
+      return Promise.all(uploadMutations);
+    } else {
+      return apolloClient.mutate({
+        mutation: gql`${mutation}`,
+        variables
+      });
+    }
   }
 }
