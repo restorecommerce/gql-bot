@@ -5,9 +5,9 @@ import * as yaml from 'js-yaml';
 import gql from 'graphql-tag';
 import { ApolloClient } from 'apollo-client';
 import { InMemoryCache } from 'apollo-cache-inmemory';
+import FormData from 'form-data';
 import fetch from 'node-fetch'; // required for apollo-link-http
 import { createHttpLink } from 'apollo-link-http';
-import { createUploadLink } from 'apollo-upload-client';
 
 
 function _checkVariableMutation(mutation: string): Boolean {
@@ -110,7 +110,7 @@ export class Client {
       caseExpression = 'json';
     } else if (source.yaml_file_paths) {
       caseExpression = 'yaml';
-    } else if (source.file_blob_paths) {
+    } else if (source.upload_file_paths) {
       caseExpression = 'blob'
     }
 
@@ -120,7 +120,7 @@ export class Client {
 
     const apiKey = JSON.stringify(this.opts.apiKey);
     let resource_list: any = [];
-    let fileUploads;
+    let fileStreams;
     switch (caseExpression) {
       case 'json':
         resource_list = JSON.stringify(source.resource_list);
@@ -139,9 +139,9 @@ export class Client {
         break;
 
       case 'blob':
-        fileUploads = [];
-        _.forEach(source.file_blob_paths, (fileBlobPath) => {
-          fileUploads.push(new Blob([fs.readFileSync(fileBlobPath).buffer]));
+        fileStreams = [];
+        _.forEach(source.upload_file_paths, (uploadFilePath) => {
+          fileStreams.push(fs.createReadStream(uploadFilePath));
         });
         break;
 
@@ -157,7 +157,7 @@ export class Client {
       mutation = mutation.replace(/(^|[^\\])\"/g, '$1');
     }
 
-    if (!fileUploads) {
+    if (!fileStreams) {
       if (_checkVariableMutation(mutation)) {
         const queryVarKey = source.queryVariables;
         const inputVarName = mutation.slice(mutation.indexOf('$') + 1, mutation.indexOf(':'));
@@ -176,39 +176,40 @@ export class Client {
       apolloLinkOpts['headers'] = this.opts.headers;
     }
 
-    let apolloLink;
-    if (fileUploads) {
-      apolloLink = createUploadLink(apolloLinkOpts);
-    } else {
-      apolloLink = createHttpLink(apolloLinkOpts);
-    }
-    
-
-    // now what exactly is/was "...others"?
-    // const gqlClient = new GraphQLClient(normalUrl, _.pick(this.opts, ['headers', '...others']));
-
-    const apolloCache = new InMemoryCache();
-    const apolloClient = new ApolloClient({
-      cache: apolloCache,
-      link: apolloLink
-    });
-
-    if (fileUploads) {
-      // The GQL file upload libraries only support FileList (read-only type)
-      // and/or single files/blobs. Hence, uploads need to be run one by one.
-      let uploadMutations = [];
-      for (let blob of fileUploads) {
-        variables = { 'file': blob };
-        uploadMutations.push(
-          apolloClient.mutate({
-            // Mutation string must be pre-parsed into GQL AST via 'gql' template literal
-            mutation: gql`${mutation}`, 
-            variables
+    if (fileStreams) {
+      // It is currently assumed that the provoded mutation only allows for uploading a single file,
+      // and hence that uploads need to be run one by one.
+      const uploads = [];
+      for (let stream of fileStreams) {
+        const body = new FormData();
+        body.append(
+          'operations',
+          JSON.stringify({
+            query: `${mutation}`,
+            variables: { 'file': stream }
           })
         );
+        body.append('map', JSON.stringify({ 1: ['variables.file'] }))
+        body.append('1', stream);
+
+        uploads.push(
+          fetch(normalUrl, { method: 'POST', body })
+        );
       }
-      return Promise.all(uploadMutations);
+      return Promise.all(uploads);
+
     } else {
+      let apolloLink = createHttpLink(apolloLinkOpts);    
+
+      // now what exactly is/was "...others"?
+      // const gqlClient = new GraphQLClient(normalUrl, _.pick(this.opts, ['headers', '...others']));
+
+      const apolloCache = new InMemoryCache();
+      const apolloClient = new ApolloClient({
+        cache: apolloCache,
+        link: apolloLink
+      });
+
       return apolloClient.mutate({
         mutation: gql`${mutation}`,
         variables
