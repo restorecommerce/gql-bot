@@ -5,7 +5,7 @@ import * as yaml from 'js-yaml';
 import gql from 'graphql-tag';
 import { ApolloClient } from 'apollo-client';
 import { InMemoryCache } from 'apollo-cache-inmemory';
-import FormData from 'formdata-node';
+import * as FormData from 'form-data';
 import fetch from 'node-fetch'; // required for apollo-link-http
 import { createHttpLink } from 'apollo-link-http';
 
@@ -111,7 +111,7 @@ export class Client {
     } else if (source.yaml_file_paths) {
       caseExpression = 'yaml';
     } else if (source.upload_file_paths) {
-      caseExpression = 'blob'
+      caseExpression = 'blob';
     }
 
     if (source.mutation) {
@@ -148,7 +148,7 @@ export class Client {
       default:
         console.log('File format not recognizable');
     }
-    
+
     if (mutation) {
       // don't replace quoted strings inside outer quotes
       // (i.e. if the quote is preceded by a backslash)
@@ -170,7 +170,7 @@ export class Client {
     const apolloLinkOpts = {
       uri: normalUrl,
       fetch
-    };    
+    };
 
     if (this.opts.headers) {
       apolloLinkOpts['headers'] = this.opts.headers;
@@ -186,10 +186,10 @@ export class Client {
           'operations',
           JSON.stringify({
             query: `${mutation}`,
-            variables: { 'file': null }
+            variables: { file: null }
           })
         );
-        form.append('map', JSON.stringify({ 1: ['variables.file'] }))
+        form.append('map', JSON.stringify({ 1: ['variables.file'] }));
         form.append('1', stream);
 
         uploads.push(
@@ -199,7 +199,7 @@ export class Client {
       return Promise.all(uploads);
 
     } else {
-      let apolloLink = createHttpLink(apolloLinkOpts);    
+      let apolloLink = createHttpLink(apolloLinkOpts);
 
       // now what exactly is/was "...others"?
       // const gqlClient = new GraphQLClient(normalUrl, _.pick(this.opts, ['headers', '...others']));
