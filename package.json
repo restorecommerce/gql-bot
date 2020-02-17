@@ -20,7 +20,7 @@
     "apollo-client": "^2.6.8",
     "apollo-link-http": "^1.5.16",
     "apollo-upload-client": "^12.1.0",
-    "form-data": "^3.0.0",
+    "formdata-node": "^2.1.1",
     "graphql": "^14.5.8",
     "graphql-tag": "^2.10.1",
     "js-yaml": "^3.13.1",

@@ -5,7 +5,7 @@ import * as yaml from 'js-yaml';
 import gql from 'graphql-tag';
 import { ApolloClient } from 'apollo-client';
 import { InMemoryCache } from 'apollo-cache-inmemory';
-import FormData from 'form-data';
+import FormData from 'formdata-node';
 import fetch from 'node-fetch'; // required for apollo-link-http
 import { createHttpLink } from 'apollo-link-http';
 
