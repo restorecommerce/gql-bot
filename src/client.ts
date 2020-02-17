@@ -179,7 +179,7 @@ export class Client {
     }
 
     if (fileStreams) {
-      // It is currently assumed that the provoded mutation only allows for uploading a single file,
+      // It is currently assumed that the provided mutation only allows for uploading a single file,
       // and hence that uploads need to be run one by one.
       const uploads = [];
       for (let stream of fileStreams) {
@@ -195,7 +195,7 @@ export class Client {
         form.append('1', stream);
 
         uploads.push(
-          fetch(normalUrl, { method: 'POST', body: form })
+          fetch(normalUrl, { method: 'POST', headers: new Headers(this.opts.headers), body: form })
         );
       }
       return Promise.all(uploads);
