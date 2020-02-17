@@ -181,19 +181,19 @@ export class Client {
       // and hence that uploads need to be run one by one.
       const uploads = [];
       for (let stream of fileStreams) {
-        const body = new FormData();
-        body.append(
+        const form = new FormData();
+        form.append(
           'operations',
           JSON.stringify({
             query: `${mutation}`,
-            variables: { 'file': stream }
+            variables: { 'file': null }
           })
         );
-        body.append('map', JSON.stringify({ 1: ['variables.file'] }))
-        body.append('1', stream);
+        form.append('map', JSON.stringify({ 1: ['variables.file'] }))
+        form.append('1', stream);
 
         uploads.push(
-          fetch(normalUrl, { method: 'POST', body })
+          fetch(normalUrl, { method: 'POST', body: form })
         );
       }
       return Promise.all(uploads);
