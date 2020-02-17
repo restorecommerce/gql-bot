@@ -155,6 +155,8 @@ export class Client {
       // make sure to also match line/expression start
       // and keep the symbol preceding the quote
       mutation = mutation.replace(/(^|[^\\])\"/g, '$1');
+      // afterwards, replace escaped quotes with regular ones
+      mutation = mutation.replace(/\\\"/g, '\"');
     }
 
     if (!fileStreams) {
