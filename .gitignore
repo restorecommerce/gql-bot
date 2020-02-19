@@ -16,3 +16,5 @@ lib
 *~
 /mc
 .nyc_output
+test/*.js
+test/*.d.ts

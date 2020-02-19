@@ -31,11 +31,10 @@ describe('client', () => {
       entry: 'http://example.com/graphql'
     });
     const response = await client.post(fileData);
-    console.log('Response is..', response);
     should.exist(response);
-    should.exist(response.createUsers);
-    should.exist(response.createUsers.regStatus);
-    response.createUsers.regStatus.forEach(function (status: any): any {
+    should.exist(response.data.createUsers);
+    should.exist(response.data.createUsers.regStatus);
+    response.data.createUsers.regStatus.forEach(function (status: any): any {
       status.toString().should.equal(respMessage);
     }, this);
   });
@@ -61,9 +60,9 @@ describe('client', () => {
 
     const response = await client.post(fileData);
     should.exist(response);
-    should.exist(response.createUsers);
-    should.exist(response.createUsers.error);
-    response.createUsers.error.forEach((error) => {
+    should.exist(response.data.createUsers);
+    should.exist(response.data.createUsers.error);
+    response.data.createUsers.error.forEach((error) => {
       should.exist(error);
       should.exist(error.code);
       should.exist(error.message);
