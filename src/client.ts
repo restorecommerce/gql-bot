@@ -195,7 +195,7 @@ export class Client {
         form.append('1', stream);
 
         let headers = _.assign({}, this.opts.headers);
-        // need to assign the form headers too here to send the request properly 
+        // need to assign the form headers too here to send the request properly
         uploads.push(
           fetch(normalUrl, { method: 'POST', headers: _.assign(headers, form.getHeaders()), body: form })
         );
