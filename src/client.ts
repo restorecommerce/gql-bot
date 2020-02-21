@@ -194,8 +194,10 @@ export class Client {
         form.append('map', JSON.stringify({ 1: ['variables.file'] }));
         form.append('1', stream);
 
+        let headers = _.assign({}, this.opts.headers);
+        // need to assign the form headers too here to send the request properly 
         uploads.push(
-          fetch(normalUrl, { method: 'POST', headers: new Headers(this.opts.headers), body: form })
+          fetch(normalUrl, { method: 'POST', headers: _.assign(headers, form.getHeaders()), body: form })
         );
       }
       return Promise.all(uploads);
