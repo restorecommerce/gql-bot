@@ -1,8 +1,8 @@
 # gql-bot
 
-<img src="http://img.shields.io/npm/v/%40restorecommerce%2Fgql%2Dbot.svg?style=flat-square" alt="">[![Build Status][build]](https://travis-ci.org/restorecommerce/gql-bot?branch=master)[![Dependencies][depend]](https://david-dm.org/restorecommerce/gql-bot)[![Coverage Status][cover]](https://coveralls.io/github/restorecommerce/gql-bot?branch=master)
+[![Version][version]](https://www.npmjs.com/package/@restorecommerce/gql-bot)[![Build Status][build]](https://travis-ci.org/restorecommerce/gql-bot?branch=master)[![Dependencies][depend]](https://david-dm.org/restorecommerce/gql-bot)[![Coverage Status][cover]](https://coveralls.io/github/restorecommerce/gql-bot?branch=master)
 
-[version]: http://img.shields.io/npm/v/gql-bot.svg?style=flat-square
+[version]: http://img.shields.io/npm/v/@restorecommerce/gql-bot.svg?style=flat-square
 [build]: http://img.shields.io/travis/restorecommerce/gql-bot/master.svg?style=flat-square
 [depend]: https://img.shields.io/david/restorecommerce/gql-bot.svg?style=flat-square
 [cover]: http://img.shields.io/coveralls/restorecommerce/gql-bot/master.svg?style=flat-square

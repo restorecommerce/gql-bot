@@ -1,4 +1,4 @@
-### 0.1.4 (not yet)
+### 0.1.4 (April 14th, 2020)
 
 - Upgrade deps and migrate to ESLint
 - Migrate from tslint to eslint
