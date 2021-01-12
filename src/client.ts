@@ -9,7 +9,6 @@ import * as FormData from 'form-data';
 import fetch from 'node-fetch'; // required for apollo-link-http
 import { createHttpLink } from 'apollo-link-http';
 
-
 function _checkVariableMutation(mutation: string): Boolean {
   const mutationName = mutation.slice(mutation.indexOf(' '),
     mutation.indexOf('($'));
@@ -98,24 +97,30 @@ export class Client {
     return url.resolve(this.entryBaseUrl, extendURL);
   }
 
-  async post(source: any, metaData?: any, accessControl?: any,
+  async post(source: any, job?: any, accessControl?: any,
     formOptions?: any): Promise<any> {
-    let mutation;
-    let variables;
-    let caseExpression;
-    source = JSON.parse(source);
+    let parsed;
+    try {
+      parsed = JSON.parse(source);
+    } catch (e) {
+      parsed = yaml.load(source);
+    }
     const normalUrl = this._normalizeUrl();
 
-    if (source.resource_list) {
+    let caseExpression;
+    if (parsed.resource_list) {
       caseExpression = 'json';
-    } else if (source.yaml_file_paths) {
+    } else if (parsed.yaml_file_paths) {
       caseExpression = 'yaml';
-    } else if (source.upload_file_paths) {
+    } else if (parsed.upload_file_paths) {
       caseExpression = 'blob';
     }
 
-    if (source.mutation) {
-      mutation = JSON.stringify(source.mutation);
+    let mutation;
+    if (job && job.mutation) {
+      mutation = JSON.stringify(job.mutation);
+    } else {
+      throw new Error('mutation not present in job config');
     }
 
     const apiKey = JSON.stringify(this.opts.apiKey);
@@ -123,13 +128,13 @@ export class Client {
     let fileStreams;
     switch (caseExpression) {
       case 'json':
-        resource_list = JSON.stringify(source.resource_list);
+        resource_list = JSON.stringify(parsed.resource_list);
         // To remove double quotes from the keys in JSON data
         resource_list = resource_list.replace(/\"([^(\")"]+)\":/g, '$1:');
         break;
 
       case 'yaml':
-        _.forEach(source.yaml_file_paths, (ymlFilePath) => {
+        _.forEach(parsed.yaml_file_paths, (ymlFilePath) => {
           const doc = yaml.safeLoad(fs.readFileSync(ymlFilePath,
             'utf8'));
           const rootKey = Object.keys(doc)[0];
@@ -140,7 +145,7 @@ export class Client {
 
       case 'blob':
         fileStreams = [];
-        _.forEach(source.upload_file_paths, (uploadFilePath) => {
+        _.forEach(parsed.upload_file_paths, (uploadFilePath) => {
           fileStreams.push(fs.createReadStream(uploadFilePath));
         });
         break;
@@ -159,6 +164,7 @@ export class Client {
       mutation = mutation.replace(/\\\"/g, '\"');
     }
 
+    let variables;
     if (!fileStreams) {
       if (_checkVariableMutation(mutation)) {
         const queryVarKey = source.queryVariables;

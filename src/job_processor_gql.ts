@@ -23,8 +23,6 @@ export class GraphQLProcessor {
   }
 
   async process(job: any): Promise<any> {
-    const thiz = this;
-    let data = '';
     const memoryStream = new MemoryStream(null, { readable: false });
     switch (job.operation) {
       case 'sync': {  //  synchronous operation
@@ -37,7 +35,7 @@ export class GraphQLProcessor {
             resolve(buf);
           });
         });
-        return this.client.post(payload, job.metaData);
+        return this.client.post(payload, job);
       }
       default: {
         throw new Error('Unsupported job operation');

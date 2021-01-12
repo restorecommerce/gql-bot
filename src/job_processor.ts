@@ -56,16 +56,13 @@ export class JobProcessor {
     tasks = tasks || this.jobInfo.tasks;
 
     const concurrency = this.jobInfo.options.concurrency;
-    const thiz = this;
     this.taskStream = ps.map({ concurrent: concurrency }, (task: any) => {
-      return thiz.jobInfo.options.processor.process(task).then((body) => {
-        console.log('Processed task [' + thiz.processed + '] and status is:' + JSON.stringify(body));
-        thiz.processed++;
+      return this.jobInfo.options.processor.process(task).then((body) => {
+        console.log('Processed task [' + this.processed + '] and status is:' + JSON.stringify(body));
+        this.processed++;
         task.inputTask.processing--;
         task.progress.value = 100; // task complete
         job.emit('progress', task);
-      }).catch((err) => {
-        throw err;
       });
     });
 
@@ -76,7 +73,7 @@ export class JobProcessor {
 
     inputTaskStream.pipe(through2.obj(async (task, enc, cb) => {
       const operation = task.operation;
-      await thiz[operation].apply(thiz, [task, job]);
+      await this[operation].apply(this, [task, job]);
       cb();
     }));
 
@@ -120,7 +117,6 @@ export class JobProcessor {
     }
 
     const fileItemStream = readdirp(path.join.apply(this, pathSegments), pathOptions);
-    const thiz = this;
 
     await new Promise((resolve, reject) => {
       fileItemStream
@@ -144,18 +140,18 @@ export class JobProcessor {
           resolve(job);
         })
         .on('end', () => {
-          if (!thiz.processedTasks) {
-            thiz.processedTasks = 0;
+          if (!this.processedTasks) {
+            this.processedTasks = 0;
           }
-          thiz.processedTasks++;
+          this.processedTasks++;
           // Check processedTasks tasks
           // Manually emit `end` event for all tasks finished
-          if (thiz.processedTasks === thiz.jobInfo.tasks.length) {
-            thiz.taskStream._flush(() => { });
-            thiz.taskStream.emit('end');
+          if (this.processedTasks === this.jobInfo.tasks.length) {
+            this.taskStream._flush(() => { });
+            this.taskStream.emit('end');
           }
         })
-        .pipe(thiz.taskStream, { end: false });
+        .pipe(this.taskStream, { end: false });
     });
   }
 }
