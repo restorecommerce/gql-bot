@@ -1,3 +1,7 @@
+### 0.1.5 (January 13th, 2021)
+
+- Support mutation outside of data
+
 ### 0.1.4 (April 14th, 2020)
 
 - Upgrade deps and migrate to ESLint

@@ -119,6 +119,8 @@ export class Client {
     let mutation;
     if (job && job.mutation) {
       mutation = JSON.stringify(job.mutation);
+    } else if (parsed && parsed.mutation) {
+      mutation = JSON.stringify(parsed.mutation);
     } else {
       throw new Error('mutation not present in job config');
     }
