@@ -24,12 +24,17 @@ function _replaceInlineVars(mutation: string, args: any): string {
     return mutation.replace(/\${(\w+)}/g, (_, v) => args[v]);
 }
 
-function _createQueryVariables(inputVarName: string,
-  queryVarKey: string, varValue: any): Object {
+function _createQueryVariables(inputVarName: string, queryVarKey: string, varValue: any): Object {
+  if (queryVarKey) {
+    return {
+      [inputVarName]: {
+        [queryVarKey]: JSON.parse(varValue)
+      }
+    };
+  }
+
   return {
-    [inputVarName]: {
-      [queryVarKey]: JSON.parse(varValue)
-    }
+    [inputVarName]: JSON.parse(varValue)
   };
 }
 
@@ -131,8 +136,6 @@ export class Client {
     switch (caseExpression) {
       case 'json':
         resource_list = JSON.stringify(parsed.resource_list);
-        // To remove double quotes from the keys in JSON data
-        resource_list = resource_list.replace(/\"([^(\")"]+)\":/g, '$1:');
         break;
 
       case 'yaml':
@@ -169,10 +172,12 @@ export class Client {
     let variables;
     if (!fileStreams) {
       if (_checkVariableMutation(mutation)) {
-        const queryVarKey = source.queryVariables;
+        const queryVarKey = job.queryVariables || parsed.queryVariables;
         const inputVarName = mutation.slice(mutation.indexOf('$') + 1, mutation.indexOf(':'));
         variables = _createQueryVariables(inputVarName, queryVarKey, resource_list);
       } else {
+        // To remove double quotes from the keys in JSON data
+        resource_list = resource_list.replace(/\"([^(\")"]+)\":/g, '$1:');
         mutation = _replaceInlineVars(mutation, { resource_list, apiKey });
       }
     }

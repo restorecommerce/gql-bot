@@ -1,3 +1,7 @@
+### 0.1.6 (January 14th, 2021)
+
+- Support query variables at root level
+
 ### 0.1.5 (January 13th, 2021)
 
 - Support mutation outside of data
